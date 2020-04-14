@@ -275,30 +275,33 @@ export class FirebaseClient implements IFirebaseClient {
     await Promise.all(
       Object.keys(data).map(async fieldName => {
         const val = data[fieldName];
-        const isArray = Array.isArray(val);
-        if (isArray) {
-          await Promise.all(
-            (val as []).map((arrayObj, index) => {
-              if (!!val[index] && val[index].hasOwnProperty("rawFile")) {
-                return Promise.all([
-                  this.parseDataField(val[index], docPath, fieldName + index)
-                ]);
-              } else {
-                return Promise.all(
-                  Object.keys(arrayObj).map(arrayObjFieldName => {
-                    const arrayObjVal = arrayObj[arrayObjFieldName];
-                    return this.parseDataField(
-                      arrayObjVal,
-                      docPath,
-                      fieldName + arrayObjFieldName + index
-                    );
-                  })
-                );
-              }
-            })
-          );
+        // const isArray = Array.isArray(val);
+        // if (isArray) {
+        //   await Promise.all(
+        //     (val as []).map((arrayObj, index) => {
+        //       if (!!val[index] && val[index].hasOwnProperty("rawFile")) {
+        //         return Promise.all([
+        //           this.parseDataField(val[index], docPath, fieldName + index)
+        //         ]);
+        //       } else {
+        //         return Promise.all(
+        //           Object.keys(arrayObj).map(arrayObjFieldName => {
+        //             const arrayObjVal = arrayObj[arrayObjFieldName];
+        //             return this.parseDataField(
+        //               arrayObjVal,
+        //               docPath,
+        //               fieldName + arrayObjFieldName + index
+        //             );
+        //           })
+        //         );
+        //       }
+        //     })
+        //   );
+        // }
+        // console.log('isArray')
+        if (val.hasOwnProperty("rawFile")) {
+          data[fieldName] = await this.parseDataField(val, docPath, fieldName);
         }
-        await this.parseDataField(val, docPath, fieldName);
       })
     );
     return data;
@@ -333,8 +336,10 @@ export class FirebaseClient implements IFirebaseClient {
     if (!hasRawFile) {
       return;
     }
-    ref.src = await this.uploadAndGetLink(ref.rawFile, docPath, fieldPath);
-    delete ref.rawFile;
+    // ref.src = await this.uploadAndGetLink(ref.rawFile, docPath, fieldPath);
+    // delete ref.rawFile;
+    return await this.uploadAndGetLink(ref.rawFile, docPath, fieldPath);
+    // delete ref.rawFile;
   }
 
   private async uploadAndGetLink(
